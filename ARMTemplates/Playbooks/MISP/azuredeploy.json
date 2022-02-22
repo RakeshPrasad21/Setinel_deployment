@@ -1,1 +1,175 @@
 
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "microsoftgraphsecurity_Connection_Name": {
+      "type": "string",
+      "defaultValue": "microsoftgraphsecurity"
+    },   
+    "LogicAppLocation": {
+      "type": "string",
+      "minLength": 1,
+      "allowedValues": [
+        "[resourceGroup().location]",
+        "eastasia",
+        "southeastasia",
+        "centralus",
+        "eastus",
+        "eastus2",
+        "westus",
+        "northcentralus",
+        "southcentralus",
+        "northeurope",
+        "westeurope",
+        "japanwest",
+        "japaneast",
+        "brazilsouth",
+        "australiaeast",
+        "australiasoutheast",
+        "southindia",
+        "centralindia",
+        "westindia",
+        "canadacentral",
+        "canadaeast",
+        "uksouth",
+        "ukwest",
+        "westcentralus",
+        "westus2",
+        "koreacentral",
+        "koreasouth",
+        "francecentral",
+        "francesouth",
+        "uaecentral",
+        "uaenorth",
+        "southafricanorth",
+        "southafricawest",
+        "switzerlandnorth",
+        "switzerlandwest",
+        "germanynorth",
+        "germanywestcentral",
+        "norwayeast",
+        "brazilsoutheast",
+        "westus3"
+      ],
+      "defaultValue": "eastus"
+    },
+    "LogicAppName": {
+      "type": "string",
+      "minLength": 1,
+      "defaultValue": "MISPImportToSentinel"
+    }
+  },
+  "variables": {},
+  "resources": [
+    {
+      "properties": {
+        "state": "Enabled",
+        "definition": {
+          "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+          "actions": {
+            "Select": {
+              "type": "Select",
+              "inputs": {
+                "from": "@triggerBody()['items']",
+                "select": "@item()['content']"
+              },
+              "runAfter": {}
+            },
+            "Submit_multiple_tiIndicators": {
+              "type": "ApiConnection",
+              "inputs": {
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['microsoftgraphsecurity_1']['connectionId']"
+                  }
+                },
+                "method": "post",
+                "body": {
+                  "value": "@body('Select')"
+                },
+                "path": "/beta/security/tiIndicators/submitTiIndicators",
+                "retryPolicy": {
+                  "type": "fixed",
+                  "count": 90,
+                  "interval": "PT60S"
+                }
+              },
+              "runAfter": {
+                "Select": [
+                  "Succeeded"
+                ]
+              }
+            }
+          },
+          "parameters": {
+            "$connections": {
+              "defaultValue": {},
+              "type": "Object"
+            }
+          },
+          "triggers": {
+            "Batch_messages": {
+              "type": "Batch",
+              "inputs": {
+                "mode": "Inline",
+                "configurations": {
+                  "tiIndicators": {
+                    "releaseCriteria": {
+                      "messageCount": 10,
+                      "recurrence": {
+                        "frequency": "Hour",
+                        "interval": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "contentVersion": "1.0.0.0",
+          "outputs": {}
+        },
+        "parameters": {
+          "$connections": {
+            "value": {
+              "microsoftgraphsecurity_1": {
+                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', parameters('LogicAppLocation'), '/managedApis/', 'microsoftgraphsecurity')]",
+                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('microsoftgraphsecurity_Connection_Name'))]",
+                "connectionName": "[parameters('microsoftgraphsecurity_Connection_Name')]"
+              }
+            }
+          }
+        }
+      },
+      "name": "[parameters('LogicAppName')]",
+      "type": "Microsoft.Logic/workflows",
+      "location": "[parameters('LogicAppLocation')]",
+      "tags": {
+        "LogicAppsCategory": "security",
+        "displayName": "LogicApp"
+      },
+      "identity": {
+        "type": "SystemAssigned",
+        "principalId": "",
+        "tenantId": ""
+      },
+      "apiVersion": "2016-06-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/connections', parameters('microsoftgraphsecurity_Connection_Name'))]"
+      ]
+    },
+    {
+      "type": "MICROSOFT.WEB/CONNECTIONS",
+      "apiVersion": "2018-07-01-preview",
+      "name": "[parameters('microsoftgraphsecurity_Connection_Name')]",
+      "location": "[parameters('LogicAppLocation')]",
+      "properties": {
+        "api": {
+          "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/',parameters('LogicAppLocation'), '/managedApis/', 'microsoftgraphsecurity')]"
+        }
+      }
+    }
+  ],
+  "outputs": {}
+}
