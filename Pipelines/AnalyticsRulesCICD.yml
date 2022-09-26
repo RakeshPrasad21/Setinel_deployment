@@ -5,7 +5,7 @@ name: build and deploy Alert Rules
 resources:
  pipelines:
    - pipeline: Scripts
-     source: 'scriptsCI'
+     source: 'Scripts'
 trigger:
  paths:
    include:
@@ -18,7 +18,7 @@ stages:
     - job: AgentJob
       pool:
        name: Azure Pipelines
-       vmImage: 'vs2017-win2016'
+       vmImage: 'windows-2019'
       steps:
        - task: CopyFiles@2
          displayName: 'Copy Alert Rules'
@@ -54,7 +54,7 @@ stages:
       - task: AzurePowerShell@4
         displayName: 'Create and Update Alert Rules'
         inputs:
-         azureSubscription: 'Soricloud Visual Studio'
+         azureSubscription: 'sentinel_poc'
          ScriptPath: '$(Pipeline.Workspace)/Scripts/Scripts/CreateAnalyticsRules.ps1'
          ScriptArguments: '-Workspace $(Workspace) -RulesFile analytics-rules.json'
          azurePowerShellVersion: LatestVersion
