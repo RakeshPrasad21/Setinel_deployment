@@ -1,0 +1,14 @@
+{
+    "connectors": [   
+        {
+            "kind": "AzureSecurityCenter",
+            "properties": {
+                "subscriptionId": "subscriptionId",
+                "dataTypes": {
+                    "alerts": {
+                        "state": "Enabled"
+                    }
+                }
+            }
+        }]
+}
