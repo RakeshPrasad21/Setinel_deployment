@@ -1,0 +1,8 @@
+{
+    "deployments": [
+        {
+            "resourcegroup": "Sentinel-RG",
+            "workspace": "LA-Sentinel"
+        }
+    ]
+}
