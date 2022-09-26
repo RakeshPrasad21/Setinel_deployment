@@ -4,7 +4,17 @@ param(
 )
 
 #Adding AzSentinel module
-Install-Module AzSentinel -Scope CurrentUser -Force -AllowClobber
+$AzSentinelModule=Get-Module -Name AzSentinel -ListAvailable
+if(!$AzSentinelModule)
+{
+ Write-Host "Installing AzSentinel Module"
+ Install-Module AzSentinel -Scope CurrentUser -Force -AllowClobber
+}
+else
+{
+ Write-Host "AzSentinel module exist."
+}
+
 Import-Module AzSentinel
 
 #Name of the Azure DevOps artifact
